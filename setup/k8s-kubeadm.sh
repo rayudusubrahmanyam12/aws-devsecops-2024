@@ -45,4 +45,40 @@ kubectl get nodes
 kubectl get pods --all-namespaces
 
 
+# Join Command - token regenerate or use existing valid token
+
+# https://ystatit.medium.com/regenerate-kubernetes-join-command-to-join-work-node-7eeb5d1f5787
+
+There are two ways to deal with the above situations,
+
+For either case, generate a new token
+Construct the join command if still within expiration time
+
+kubeadm token create --print-join-command
+
+kubeadm token list
+
+# Construct the join command
+For either case, it is easier and simpler just to create a new token for join command but it makes no harm to know more about how to construct the command. The join command is structured as below,
+
+kubeadm join <api-server-ip:port> --token <token-value> \
+--discovery-token-ca-cert-hash sha256:<hash value>
+So we need three information,
+
+Api-server-ip and port, which you can find easily
+Valid token
+Token-ca-cert-hash value
+On control plane node, run command below to get api-server-ip and port.
+
+kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' && echo ""
+
+Retrive token-ca-cert-hash value on any of the control plane node within the cluster.
+
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | \
+openssl rsa -pubin -outform der 2>/dev/null | \
+openssl dgst -sha256 -hex | sed ‘s/^.* //’
+kubeadm join https://172.31.34.35:6443 --token mtm0du.thnfm4whqygtkz22 \
+--discovery-token-ca-cert-hash sha256:10b4d4f00d8d370dd8fa5934a0a2d8051e60159af778cca0ac07e0519d043977
+
+
 
